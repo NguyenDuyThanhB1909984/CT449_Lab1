@@ -1,7 +1,9 @@
 /*import 'dart:js';*/
 
 import 'package:flutter/material.dart';
+import 'package:hello/ui/products/products_manager.dart';
 import '../../models/product.dart';
+import 'package:provider/provider.dart';
 
 class UserProductListTile extends StatelessWidget {
   final Product product;
@@ -26,7 +28,17 @@ class UserProductListTile extends StatelessWidget {
     return IconButton(
       icon: const Icon(Icons.delete),
       onPressed: () async {
-        print('Delete a product');
+        context.read<ProductsManager>().deleteProduct(product.id!);
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Product deleted',
+                textAlign: TextAlign.center,
+              ),
+            ),
+          );
       },
       color: Theme.of(context).errorColor,
     );
