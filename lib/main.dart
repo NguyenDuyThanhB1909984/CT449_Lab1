@@ -16,9 +16,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (ctx) => ProductsManager(),
-        ),
+        // ChangeNotifierProvider(
+        //   create: (ctx) => ProductsManager(),
+        // ),
         ChangeNotifierProvider(
           create: (ctx) => CartManager(),
         ),
@@ -28,6 +28,13 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (context) => AuthManager(),
         ),
+        ChangeNotifierProxyProvider<AuthManager, ProductsManager>(
+          create: (ctx) => ProductsManager(),
+          update: (ctx, authManager, productsManager) {
+            productsManager!.authToken = authManager.authToken;
+            return productsManager;
+          },
+        )
       ],
       // child: MaterialApp(
       //   title: 'My Shop',
@@ -76,6 +83,16 @@ class MyApp extends StatelessWidget {
 
       child: Consumer<AuthManager>(builder: (ctx, authManager, child) {
         return MaterialApp(
+          title: 'My Shop',
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            fontFamily: 'Lato',
+            colorScheme: ColorScheme.fromSwatch(
+              primarySwatch: Colors.blue,
+            ).copyWith(
+              secondary: Colors.yellow,
+            ),
+          ),
           home: authManager.isAuth
               ? const ProductsOverviewScreen()
               : FutureBuilder(
@@ -86,6 +103,38 @@ class MyApp extends StatelessWidget {
                         : const AuthScreen();
                   },
                 ),
+          routes: {
+            CartScreen.routeName: (context) => const CartScreen(),
+            OrdersScreen.routeName: (context) => const OrdersScreen(),
+            UserProductsScreen.routeName: (context) =>
+                const UserProductsScreen(),
+          },
+          onGenerateRoute: (settings) {
+            if (settings.name == ProductDetailScreen.routeName) {
+              final productId = settings.arguments as String;
+              return MaterialPageRoute(
+                builder: (ctx) {
+                  return ProductDetailScreen(
+                    ctx.read<ProductsManager>().findById(productId),
+                  );
+                },
+              );
+            }
+
+            if (settings.name == EditProductScreen.routeName) {
+              final productId = settings.arguments as String?;
+              return MaterialPageRoute(
+                builder: (ctx) {
+                  return EditProductScreen(
+                    productId != null
+                        ? ctx.read<ProductsManager>().findById(productId)
+                        : null,
+                  );
+                },
+              );
+            }
+            return null;
+          },
         );
       }),
     );
