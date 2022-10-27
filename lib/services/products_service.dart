@@ -15,9 +15,9 @@ class ProductsService extends FirebaseService {
     try {
       final filters =
           filterByUser ? 'orderBy="creatorId"&equalTo="$userId"' : '';
-      final productUrl =
+      final productsUrl =
           Uri.parse('$databaseUrl/products.json?auth=$token&$filters');
-      final response = await http.get(productUrl);
+      final response = await http.get(productsUrl);
       final productsMap = json.decode(response.body) as Map<String, dynamic>;
 
       if (response.statusCode != 200) {
@@ -51,7 +51,7 @@ class ProductsService extends FirebaseService {
   Future<Product?> addProduct(Product product) async {
     try {
       final url = Uri.parse('$databaseUrl/products.json?auth=$token');
-      final reponse = await http.post(
+      final response = await http.post(
         url,
         body: json.encode(
           product.toJson()
@@ -61,18 +61,73 @@ class ProductsService extends FirebaseService {
         ),
       );
 
-      if (reponse.statusCode != 200) {
-        throw Exception(json.decode(reponse.body)['error']);
-        print("thanh cong");
+      if (response.statusCode != 200) {
+        throw Exception(json.decode(response.body)['error']);
+        print("error");
       }
 
       return product.copyWith(
-        id: json.decode(reponse.body)['name'],
+        id: json.decode(response.body)['name'],
       );
     } catch (error) {
       print(error);
       print("loi");
       return null;
+    }
+  }
+
+  Future<bool> updateProduct(Product product) async {
+    try {
+      final url =
+          Uri.parse('$databaseUrl/products/${product.id}.json?auth=$token');
+      final response = await http.patch(
+        url,
+        body: json.encode(product.toJson()),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception(json.decode(response.body)['error']);
+      }
+      return true;
+    } catch (error) {
+      print(error);
+      return false;
+    }
+  }
+
+  Future<bool> deletedProduct(String id) async {
+    try {
+      final url = Uri.parse('$databaseUrl/products/$id.json?auth=$token');
+      final response = await http.delete(url);
+
+      if (response.statusCode != 200) {
+        throw Exception(json.decode(response.body)['error']);
+      }
+
+      return true;
+    } catch (error) {
+      print(error);
+      return false;
+    }
+  }
+
+  Future<bool> saveFavoriteStatus(Product product) async {
+    try {
+      final url = Uri.parse(
+          '$databaseUrl/UserFavorites/$userId/${product.id}.json?auth=$token');
+      final response = await http.put(
+        url,
+        body: json.encode(
+          product.isFavorite,
+        ),
+      );
+      if (response.statusCode != 200) {
+        throw Exception(json.decode(response.body)['error']);
+      }
+      return true;
+    } catch (error) {
+      print(error);
+      return false;
     }
   }
 }

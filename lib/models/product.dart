@@ -53,7 +53,7 @@ class Product {
       'title': title,
       'description': description,
       'price': price,
-      'imageUrl': imageUrl
+      'imageUrl': imageUrl,
     };
   }
 
